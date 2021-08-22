@@ -11,7 +11,6 @@ namespace BemaniDiscord
     class GTDR : GameBase
     {
         long db;
-        long result;
         long selection;
         long nowPlaying;
         struct Song
@@ -86,10 +85,21 @@ namespace BemaniDiscord
         }
         public override void LoadOffsets()
         {
-            db = 0x145390F54;
-            result = 0x14086744;
-            selection = 0x144DF9524;
-            nowPlaying = 0x14456ABC8;
+            foreach(var line in File.ReadAllLines("GTDR/offsets.txt"))
+            {
+                var sections = line.Split('=');
+                if(sections.Length != 2) { continue; }
+                sections[0] = sections[0].Trim();
+                sections[1] = sections[1].Trim();
+                var offset = Convert.ToInt64(sections[1], 16);
+                switch (sections[0].ToLower())
+                {
+                    case "selection": selection = offset; break;
+                    case "db": db = offset; break;
+                    case "nowplaying": nowPlaying = offset; break;
+                    case "version": version = offset; break;
+                }
+            }
         }
         public override bool IsLoaded()
         {

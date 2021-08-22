@@ -13,6 +13,12 @@ namespace BemaniDiscord
         long db;
         long selection;
         long nowPlaying;
+        long version;
+
+        bool initialized = false;
+
+        enum Mode { GF, DM };
+        Mode gameMode;
         struct Song
         {
             public string title;
@@ -53,7 +59,11 @@ namespace BemaniDiscord
             var selectID = Util.BytesToInt32(buffer, 0);
             var diff = Util.BytesToInt32(buffer, 4);
             var mode = Util.BytesToInt32(buffer, 12);
-            string modename = (mode == 0 ? "GUITAR" : "BASS");
+            string modename = "DRUM";
+            if (gameMode == Mode.GF)
+            {
+                modename = (mode == 0 ? "GUITAR" : "BASS");
+            }
             string difficulty = "";
             switch (diff)
             {
@@ -79,9 +89,11 @@ namespace BemaniDiscord
             int playingID = GetPlayingID();
             if (playingID == 0)
             {
+                initialized = true;
                 return GameState.Menu;
             }
-            return GameState.Playing;
+
+            return initialized ? GameState.Playing : GameState.Menu;
         }
         public override void LoadOffsets()
         {
@@ -111,6 +123,15 @@ namespace BemaniDiscord
         {
             Song song;
             int offset = 0;
+            var buffer = Util.ReadData(handle, version, 20);
+            string str = Encoding.GetEncoding("UTF-8").GetString(buffer);
+            if (str.Contains("U32:J:A"))
+            {
+                gameMode = Mode.GF;
+            } else
+            {
+                gameMode = Mode.DM;
+            }
             do
             {
                 song = FetchSongInfo(handle, db + 64 + offset);
@@ -158,7 +179,6 @@ namespace BemaniDiscord
                 };
 
             var data = buffer.Skip(242).Take(slab).Where(x => x != 0).ToArray();
-            //var title = Encoding.GetEncoding("Shift-JIS").GetString(data);
             var title = Encoding.GetEncoding("UTF-8").GetString(data);
 
             if (Util.BytesToInt32(buffer.Skip(242).Take(slab).ToArray(), 0) == 0)

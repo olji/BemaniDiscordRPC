@@ -10,6 +10,7 @@ namespace BemaniDiscord
     abstract class GameBase
     {
         public IntPtr handle;
+        public abstract void UpdateSupportFiles();
         public abstract void LoadOffsets();
         public abstract bool IsLoaded();
         public abstract void Init();

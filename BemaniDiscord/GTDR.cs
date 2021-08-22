@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace BemaniDiscord
 {
@@ -23,6 +24,24 @@ namespace BemaniDiscord
         }
         Dictionary<int, Song> songdb = new Dictionary<int, Song>();
 
+        string updateServer = "https://raw.githubusercontent.com/olji/BemaniDiscordRPC/master/BemaniDiscord/GTDR/";
+        readonly static HttpClient client = new HttpClient();
+        public override void UpdateSupportFiles()
+        {
+            if (!Directory.Exists("GTDR"))
+            {
+                Directory.CreateDirectory("GTDR");
+            }
+            var offsetContent = getFile("offsets");
+            File.WriteAllText("GTDR/offsets.txt", offsetContent);
+        }
+        string getFile(string filename)
+        {
+            var builder = new UriBuilder(updateServer + $"/{filename}.txt");
+            var response = client.GetStringAsync(builder.Uri);
+            response.Wait();
+            return response.Result;
+        }
         public override string ImgName()
         {
             return "gtdr";

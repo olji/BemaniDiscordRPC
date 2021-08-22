@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace BemaniDiscord
 {
@@ -41,6 +41,26 @@ namespace BemaniDiscord
         long currentSong;
         long judgeData;
 
+        string updateServer = "https://raw.githubusercontent.com/olji/Reflux/master/Reflux/";
+        readonly static HttpClient client = new HttpClient();
+        public override void UpdateSupportFiles()
+        {
+            if (!Directory.Exists("IIDX"))
+            {
+                Directory.CreateDirectory("IIDX");
+            }
+            var offsetContent = getFile("offsets");
+            File.WriteAllText("IIDX/offsets.txt", offsetContent);
+            var encodingContent = getFile("encodingfixes");
+            File.WriteAllText("IIDX/encodingfixes.txt", encodingContent);
+        }
+        string getFile(string filename)
+        {
+            var builder = new UriBuilder(updateServer + $"/{filename}.txt");
+            var response = client.GetStringAsync(builder.Uri);
+            response.Wait();
+            return response.Result;
+        }
         public override string ImgName()
         {
             return "infinitas";
@@ -72,7 +92,7 @@ namespace BemaniDiscord
         #region Support funcs
         public override void LoadOffsets()
         {
-            var lines = File.ReadAllLines(@"D:\Software\Reflux\offsets.txt");
+            var lines = File.ReadAllLines("IIDX/offsets.txt");
             for(int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
@@ -93,7 +113,7 @@ namespace BemaniDiscord
         {
             try
             {
-                foreach (var line in File.ReadAllLines(@"D:\Software\Reflux\encodingfixes.txt"))
+                foreach (var line in File.ReadAllLines("IIDX/encodingfixes.txt"))
                 {
                     if (!line.Contains('\t')) { continue; } /* Skip version string */
                     var pair = line.Split('\t');

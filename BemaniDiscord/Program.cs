@@ -56,6 +56,7 @@ namespace BemaniDiscord
                     IntPtr processHandle = OpenProcess(0x0410, false, process.Id); /* Open process for memory read */
 
                     game.handle = processHandle;
+                    game.UpdateSupportFiles();
                     game.LoadOffsets();
                     while (!game.IsLoaded())
                     {

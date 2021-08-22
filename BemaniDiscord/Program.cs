@@ -114,10 +114,8 @@ namespace BemaniDiscord
                         };
                         activityManager.UpdateActivity(activity, (res) =>
                         {
-                            Console.WriteLine("Entered callback");
                             if (res == Discord.Result.Ok)
                             {
-                                Console.WriteLine("Wrote RPC properly");
                             }
                         });
                         while (game.GetState() != GameState.Menu)
@@ -136,21 +134,20 @@ namespace BemaniDiscord
                         };
                         activityManager.UpdateActivity(activity, (res) =>
                         {
-                            Console.WriteLine("Entered callback");
                             if (res == Discord.Result.Ok)
                             {
-                                Console.WriteLine("Wrote RPC properly");
                             }
                         });
                         client.RunCallbacks();
-                        Console.WriteLine("Finished");
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Console.WriteLine($"ERROR: {e.Message}");
                 }
                 finally
                 {
+                    Console.WriteLine("Exiting...");
                     client.ActivityManagerInstance.ClearActivity((res) => { });
                     client.Dispose();
                 }

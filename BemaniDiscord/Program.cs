@@ -4,12 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
+using System.Drawing;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace BemaniDiscord
 {
-    class Program
+    static class Program
     {
         [DllImport("kernel32.dll")]
         public static extern bool ReadProcessMemory(int hProcess,
@@ -21,7 +23,8 @@ namespace BemaniDiscord
         static Discord.Discord client;
 
         enum GAME_ACTIVE { GTDR, IIDX };
-        static void Main(string[] args)
+        [STAThread]
+        static void Run()
         {
             long appid = 0;
             GameBase game = null;
@@ -153,5 +156,86 @@ namespace BemaniDiscord
                 }
             } while (true);
         }
+
+        #region GUI control support stuff
+        [DllImport("user32.dll")]
+        static extern IntPtr FindWindow(string className, string windowName);
+        [DllImport("user32.dll")]
+        static extern IntPtr ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        static NotifyIcon notifyIcon;
+        static IntPtr processHandle;
+        static IntPtr shell;
+        static IntPtr desktop;
+        static MenuItem hideMenu;
+        static MenuItem restoreMenu;
+        static void Main(string[] args)
+        {
+            notifyIcon = new NotifyIcon();
+            try
+            {
+                notifyIcon.Icon = new Icon("icon.ico");
+            } catch
+            {
+                Console.WriteLine("Couldn't open \"icon.ico\" for use as tray icon");
+            }
+            notifyIcon.Text = "BemaniRPC";
+            notifyIcon.Visible = true;
+
+            ContextMenu menu = new ContextMenu();
+            hideMenu = new MenuItem("Hide", new EventHandler(Hide));
+            restoreMenu = new MenuItem("Show", new EventHandler(Show));
+
+            menu.MenuItems.Add(restoreMenu);
+            menu.MenuItems.Add(hideMenu);
+            menu.MenuItems.Add(new MenuItem("Exit", new EventHandler(Exit)));
+
+            notifyIcon.ContextMenu = menu;
+            Console.WriteLine("# Use tray icon to hide me #\n\n");
+            Task.Factory.StartNew(Run);
+
+            processHandle = Process.GetCurrentProcess().MainWindowHandle;
+
+            bool hide = args.Any(x => x == "-hidden");
+
+            HideWindow(hide);
+
+            Application.Run();
+        }
+        static void Exit(object sender, EventArgs e)
+        {
+            notifyIcon.Visible = false;
+            Application.Exit();
+            Environment.Exit(0);
+        }
+        static void Hide(object sender, EventArgs e)
+        {
+            HideWindow(true);
+        }
+        static void Show(object sender, EventArgs e)
+        {
+            HideWindow(false);
+        }
+        static void HideWindow(bool hide)
+        {
+
+            var hwnd = FindWindow(null, Console.Title);
+            if(hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+            if (hide)
+            {
+                restoreMenu.Enabled = true;
+                hideMenu.Enabled = false;
+                ShowWindow(hwnd, 0);
+            } else
+            {
+                restoreMenu.Enabled = false;
+                hideMenu.Enabled = true;
+                ShowWindow(hwnd, 1);
+            }
+        }
+        #endregion
     }
 }

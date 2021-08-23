@@ -177,6 +177,7 @@ namespace BemaniDiscord
                 notifyIcon.Icon = new Icon("icon.ico");
             } catch
             {
+                notifyIcon.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
                 Console.WriteLine("Couldn't open \"icon.ico\" for use as tray icon");
             }
             notifyIcon.Text = "BemaniRPC";

@@ -61,6 +61,17 @@ namespace BemaniDiscord
                     game.handle = processHandle;
                     game.UpdateSupportFiles();
                     game.LoadOffsets();
+
+                    client = new Discord.Discord(appid, (UInt64)Discord.CreateFlags.Default);
+
+                    var activityManager = client.GetActivityManager();
+                    var activity = new Discord.Activity
+                    {
+                        Assets =
+                        {
+                            LargeImage = game.ImgName()
+                        }
+                    };
                     while (!game.IsLoaded())
                     {
                         Thread.Sleep(2000);
@@ -71,17 +82,13 @@ namespace BemaniDiscord
 
                     game.Init();
 
-                    client = new Discord.Discord(appid, (UInt64)Discord.CreateFlags.Default);
-
-                    var activityManager = client.GetActivityManager();
-
-                    var activity = new Discord.Activity
+                    activity = new Discord.Activity
                     {
                         Details = "In menu",
                         Assets =
-                    {
-                        LargeImage = game.ImgName()
-                    }
+                        {
+                            LargeImage = game.ImgName()
+                        }
 
                     };
                     activityManager.UpdateActivity(activity, (res) => { });
@@ -103,9 +110,9 @@ namespace BemaniDiscord
                             Details = "Playing",
                             State = songString,
                             Assets =
-                        {
-                            LargeImage = game.ImgName()
-                        }
+                            {
+                                LargeImage = game.ImgName()
+                            }
 
                         };
                         activityManager.UpdateActivity(activity, (res) => { });
@@ -118,9 +125,9 @@ namespace BemaniDiscord
                         {
                             Details = "In menu",
                             Assets =
-                    {
-                        LargeImage = game.ImgName()
-                    }
+                            {
+                                LargeImage = game.ImgName()
+                            }
 
                         };
                         activityManager.UpdateActivity(activity, (res) => {});
@@ -134,8 +141,11 @@ namespace BemaniDiscord
                 finally
                 {
                     Console.WriteLine("Exiting...");
-                    client.ActivityManagerInstance.ClearActivity((res) => { });
-                    client.Dispose();
+                    if (client != null)
+                    {
+                        client.ActivityManagerInstance.ClearActivity((res) => { });
+                        client.Dispose();
+                    }
                 }
             } while (true);
         }
